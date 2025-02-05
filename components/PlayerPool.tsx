@@ -13,7 +13,7 @@ interface PlayerPoolProps {
 
 const mockPlayers: Player[] = [
   { id: "1", name: "John Doe", position: "Forward", avatar: "/placeholder.svg?height=40&width=40" },
-  { id: "2", name: "Jane Smith", position: "Midfielder", avatar: "/placeholder.svg?height=40&width=40" },
+  { id: "2", name: " Smith", position: "Midfielder", avatar: "/placeholder.svg?height=40&width=40" },
   { id: "3", name: "Mike Johnson", position: "Defender", avatar: "/placeholder.svg?height=40&width=40" },
   { id: "4", name: "Sarah Williams", position: "Goalkeeper", avatar: "/placeholder.svg?height=40&width=40" },
 ]

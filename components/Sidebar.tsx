@@ -7,11 +7,12 @@ interface SidebarProps {
   isOpen: boolean
   onClose: () => void
   onLogout: () => void
+  currentPath: string
   currentView: "teams" | "playerPool"
   onChangeView: (view: "teams" | "playerPool") => void
 }
 
-export default function Sidebar({ isOpen, onClose, onLogout, currentView, onChangeView }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, onLogout, currentPath, currentView, onChangeView }: SidebarProps) {
   const router = useRouter()
 
   return (
