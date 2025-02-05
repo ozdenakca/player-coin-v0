@@ -4,7 +4,7 @@ interface Player {
   id: string
   name: string
   position: string
-  avatar: string
+  photo: string
 }
 
 interface PlayerListProps {
@@ -26,7 +26,7 @@ export default function PlayerList({ players, onSelectPlayer }: PlayerListProps)
             className="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
             onClick={() => onSelectPlayer(player.id)}
           >
-            <img src={player.avatar || "/placeholder.svg"} alt={player.name} className="w-12 h-12 rounded-full mr-3" />
+            <img src={player.photo || "/placeholder.svg"} alt={player.name} className="w-12 h-12 rounded-full mr-3" />
             <div>
               <h4 className="font-semibold">{player.name}</h4>
               <p className="text-sm text-gray-600">{player.position}</p>
