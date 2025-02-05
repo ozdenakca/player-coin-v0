@@ -1,32 +1,26 @@
 import { Activity } from "lucide-react"
 
-interface PlayerStatsProps {
+interface StatsProps {
   stats: {
-    goals: number
-    assists: number
-    appearances: number
+    cards: {
+      red: number | null;
+      yellow: number | null;
+    }
   }
 }
 
-export default function PlayerStats({ stats }: PlayerStatsProps) {
+export default function PlayerStats({ stats }: StatsProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center">
-        <Activity className="h-6 w-6 mr-2" />
-        Player Stats
-      </h3>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-3xl font-bold mb-1">{stats.goals}</p>
-          <p className="text-sm text-gray-600">Goals</p>
+      <h3 className="text-xl font-semibold mb-4">Cards</h3>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="text-sm text-gray-600">Red Cards</div>
+          <div className="text-xl font-semibold">{stats?.cards?.red ?? 0}</div>
         </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-3xl font-bold mb-1">{stats.assists}</p>
-          <p className="text-sm text-gray-600">Assists</p>
-        </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-3xl font-bold mb-1">{stats.appearances}</p>
-          <p className="text-sm text-gray-600">Appearances</p>
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="text-sm text-gray-600">Yellow Cards</div>
+          <div className="text-xl font-semibold">{stats?.cards?.yellow ?? 0}</div>
         </div>
       </div>
     </div>

@@ -52,9 +52,9 @@ export default function DashboardPage() {
             {selectedPlayer && (
               <PlayerProfile
                 playerId={selectedPlayer}
-                onBack={() => {
+                onBack={(teamId) => {
                   setSelectedPlayer(null)
-                  setSelectedTeam(null)
+                  setSelectedTeam(teamId.toString())
                 }}
               />
             )}
