@@ -21,7 +21,11 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       if (userCredential.user) {
-        sessionStorage.setItem("sessionStart", Date.now().toString())
+        const sessionData = {
+          timestamp: Date.now(),
+          userId: userCredential.user.uid
+        }
+        sessionStorage.setItem("sessionStart", JSON.stringify(sessionData))
         router.push("/dashboard")
       }
     } catch (error: any) {

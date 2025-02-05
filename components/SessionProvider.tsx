@@ -3,10 +3,11 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { auth } from "@/lib/firebase"
 
 interface SessionContextType {
   isLoggedIn: boolean
-  login: () => void
+  login: (userId: string) => void
   logout: () => void
 }
 
@@ -18,15 +19,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkSession = () => {
-      const sessionStart = sessionStorage.getItem("sessionStart")
-      if (sessionStart) {
-        const sessionStartTime = Number.parseInt(sessionStart, 10)
-        const currentTime = Date.now()
-        const twoHours = 2 * 60 * 60 * 1000 // 2 hours in milliseconds
+      const sessionData = sessionStorage.getItem("sessionStart")
+      if (sessionData) {
+        try {
+          const { timestamp, userId } = JSON.parse(sessionData)
+          const currentTime = Date.now()
+          const twoHours = 2 * 60 * 60 * 1000
 
-        if (currentTime - sessionStartTime < twoHours) {
-          setIsLoggedIn(true)
-        } else {
+          if (currentTime - timestamp < twoHours && userId) {
+            setIsLoggedIn(true)
+          } else {
+            sessionStorage.removeItem("sessionStart")
+            setIsLoggedIn(false)
+            router.push("/login")
+          }
+        } catch (e) {
           sessionStorage.removeItem("sessionStart")
           setIsLoggedIn(false)
           router.push("/login")
@@ -38,13 +45,17 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
 
     checkSession()
-    const interval = setInterval(checkSession, 60000) // Check every minute
+    const interval = setInterval(checkSession, 60000)
 
     return () => clearInterval(interval)
   }, [router])
 
-  const login = () => {
-    sessionStorage.setItem("sessionStart", Date.now().toString())
+  const login = (userId: string) => {
+    const sessionData = {
+      timestamp: Date.now(),
+      userId: userId
+    }
+    sessionStorage.setItem("sessionStart", JSON.stringify(sessionData))
     setIsLoggedIn(true)
   }
 
