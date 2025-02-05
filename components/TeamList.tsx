@@ -1,20 +1,50 @@
+import { collection, query, getDocs } from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import { useEffect, useState } from 'react'
+
+interface Team {
+  id: string
+  name: string
+  logo: string
+}
+
 interface TeamListProps {
   onSelectTeam: (teamId: string) => void
 }
 
-const mockTeams = [
-  { id: "1", name: "Team A", logo: "/placeholder.svg" },
-  { id: "2", name: "Team B", logo: "/placeholder.svg" },
-  { id: "3", name: "Team C", logo: "/placeholder.svg" },
-  { id: "4", name: "Team D", logo: "/placeholder.svg" },
-]
-
 export default function TeamList({ onSelectTeam }: TeamListProps) {
+  const [teams, setTeams] = useState<Team[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const teamsQuery = query(collection(db, 'teams'))
+        const querySnapshot = await getDocs(teamsQuery)
+        const teamsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Team))
+        setTeams(teamsData)
+      } catch (error) {
+        console.error('Error fetching teams:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTeams()
+  }, [])
+
+  if (loading) {
+    return <div>Loading teams...</div>
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Teams</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {mockTeams.map((team) => (
+        {teams.map((team) => (
           <div
             key={team.id}
             className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition-shadow"
