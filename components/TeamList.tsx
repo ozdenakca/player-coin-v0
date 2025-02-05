@@ -1,6 +1,8 @@
+"use client"
 import { collection, query, getDocs } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useEffect, useState } from 'react'
+import { useRouter } from "next/navigation"
 
 interface Team {
   id: string
@@ -8,13 +10,12 @@ interface Team {
   logo: string
 }
 
-interface TeamListProps {
-  onSelectTeam: (teamId: string) => void
-}
+interface TeamListProps {}
 
-export default function TeamList({ onSelectTeam }: TeamListProps) {
+export default function TeamList() {
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -48,7 +49,7 @@ export default function TeamList({ onSelectTeam }: TeamListProps) {
           <div
             key={team.id}
             className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => onSelectTeam(team.id)}
+            onClick={() => router.push(`/teams/${team.id}`)}
           >
             <img src={team.logo || "/placeholder.svg"} alt={team.name} className="w-24 h-24 mx-auto mb-2" />
             <h3 className="text-lg font-semibold text-center">{team.name}</h3>
