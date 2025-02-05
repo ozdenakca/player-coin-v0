@@ -1,4 +1,6 @@
+"use client"
 import { User } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface Player {
   id: string
@@ -18,7 +20,9 @@ const mockPlayers: Player[] = [
   { id: "4", name: "Sarah Williams", position: "Goalkeeper", avatar: "/placeholder.svg?height=40&width=40" },
 ]
 
-export default function PlayerPool({ onSelectPlayer }: PlayerPoolProps) {
+export default function PlayerPool() {
+  const router = useRouter()
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 flex items-center">
@@ -30,7 +34,7 @@ export default function PlayerPool({ onSelectPlayer }: PlayerPoolProps) {
           <div
             key={player.id}
             className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => onSelectPlayer(player.id)}
+            onClick={() => router.push(`/players/${player.id}`)}
           >
             <img
               src={player.avatar || "/placeholder.svg"}

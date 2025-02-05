@@ -3,6 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import TopBar from "@/components/TopBar"
 import Sidebar from "@/components/Sidebar"
+import AuthGuard from "@/components/AuthGuard"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -14,25 +15,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = () => {
     sessionStorage.removeItem("sessionStart")
-    router.push("/login")
+    router.replace('/login')
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <div className="flex">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={handleLogout}
-          currentPath="/dashboard"
-          currentView="teams"
-          onChangeView={() => {}}
-        />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+    <AuthGuard>
+      <div className="min-h-screen bg-gray-100">
+        <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <div className="flex">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onLogout={handleLogout}
+            currentPath="/dashboard"
+            currentView="teams"
+            onChangeView={() => {}}
+          />
+          <main className="flex-1 p-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   )
 } 

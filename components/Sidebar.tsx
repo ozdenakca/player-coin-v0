@@ -12,7 +12,7 @@ interface SidebarProps {
   onChangeView: (view: "teams" | "playerPool") => void
 }
 
-export default function Sidebar({ isOpen, onClose, onLogout, currentPath, currentView, onChangeView }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, onLogout }: SidebarProps) {
   const router = useRouter()
 
   return (
@@ -30,12 +30,10 @@ export default function Sidebar({ isOpen, onClose, onLogout, currentPath, curren
             <li>
               <button
                 onClick={() => {
-                  onChangeView("teams")
+                  router.push('/dashboard')
                   onClose()
                 }}
-                className={`flex items-center w-full text-left ${
-                  currentView === "teams" ? "text-blue-500" : "text-gray-700 hover:text-blue-500"
-                }`}
+                className="flex items-center w-full text-left text-gray-700 hover:text-blue-500"
               >
                 <Home className="h-5 w-5 mr-2" />
                 Home
@@ -44,12 +42,10 @@ export default function Sidebar({ isOpen, onClose, onLogout, currentPath, curren
             <li>
               <button
                 onClick={() => {
-                  onChangeView("playerPool")
+                  router.push('/player-pool')
                   onClose()
                 }}
-                className={`flex items-center w-full text-left ${
-                  currentView === "playerPool" ? "text-blue-500" : "text-gray-700 hover:text-blue-500"
-                }`}
+                className="flex items-center w-full text-left text-gray-700 hover:text-blue-500"
               >
                 <Users className="h-5 w-5 mr-2" />
                 Player Pool
