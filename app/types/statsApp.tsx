@@ -53,8 +53,7 @@ export type AttackerPerformenceType =
   | "keyPassesPerGame"
   | "totalMinutesPlayed"
   | "yellowCards"
-  | "redCards"
-  | "goalConversion";
+  | "redCards";
 
 export type MidfielderPerformanceType =
   | "goalsPerGame"
@@ -62,12 +61,12 @@ export type MidfielderPerformanceType =
   | "gamesStarted"
   | "dualsWon"
   | "minutesPerGame"
-  | "goalConversion"
+  | "successfulDribbles"
   | "keyPassesPerGame"
   | "totalMinutesPlayed"
+  | "interceptionsPerGame"
   | "yellowCards"
-  | "redCards"
-  | "goalConversion";
+  | "redCards";
 
 export type DefenderPerformanceType =
   | "goalsPerGame"
@@ -75,25 +74,22 @@ export type DefenderPerformanceType =
   | "gamesStarted"
   | "dualsWon"
   | "minutesPerGame"
-  | "goalConversion"
-  | "keyPassesPerGame"
+  | "interceptionsPerGame"
+  | "tacklesPerGame"
   | "totalMinutesPlayed"
   | "yellowCards"
-  | "redCards"
-  | "goalConversion";
+  | "redCards";
 
 export type GoalkeeperPerformanceType =
-  | "goalsPerGame"
-  | "assistsPerGame"
   | "gamesStarted"
-  | "dualsWon"
+  | "savesPerGame"
+  | "cleanSheets"
   | "minutesPerGame"
-  | "goalConversion"
-  | "keyPassesPerGame"
   | "totalMinutesPlayed"
+  | "penaltiesSaved"
+  | "goalsConcededPerGame"
   | "yellowCards"
-  | "redCards"
-  | "goalConversion";
+  | "redCards";
 
 export type PlayerValues<T extends PlayerType> = {
   id: number;
