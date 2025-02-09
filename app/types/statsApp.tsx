@@ -2,16 +2,12 @@ export type PerformanceStats = {
   value: number;
   leaugeAvarage: number;
   weight: number;
-  normalizedValue: number;
-  weightXNormaliazedValue: number;
 };
 
 export type MediaStats = {
   value: number;
   maxValue: number;
   weight: number;
-  normalizedValue: number;
-  normalizedValueXWeight: number;
 };
 
 export type DemandFactor = {
@@ -25,8 +21,6 @@ export type ExternalFactor = {
   value: number;
   normalizationValue: number;
   weight: number;
-  normalizedValue: number;
-  normalizedValueXWeight: number;
 };
 
 export type ImpactOnTeam = {

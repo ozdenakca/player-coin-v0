@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Player } from "@/app/players/Player";
 import { ConnectionManager } from "@/app/managers/ConnectionManager";
 import { PlayerType } from "@/app/types/statsApp";
+import PlayerStats from "./PlayerStats";
 
 interface PlayerProfileProps {
   playerId: string;
@@ -98,7 +99,8 @@ export default function PlayerProfile({
           </div>
         </div>
 
-        {/* Cards Statistics Section */}
+        {/* Stats Section */}
+        <PlayerStats player={player} />
       </div>
     </div>
   );

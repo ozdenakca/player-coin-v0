@@ -179,7 +179,7 @@ export class Player<T extends PlayerType> {
     } as PerformanceStatsMap[T];
 
     const finalValue = Object.values(mappedStats).reduce(
-      (sum, stat) => sum + (stat?.weightXNormaliazedValue ?? 0),
+      (sum, stat) => sum + (stat.value / stat.leaugeAvarage) * stat.weight,
       0
     );
 
@@ -255,8 +255,6 @@ export class Player<T extends PlayerType> {
           value: Math.random(),
           normalizationValue: 1,
           weight: -0.5,
-          normalizedValue: Math.random(),
-          normalizedValueXWeight: Math.random() * -0.5,
         },
       },
       finalValue: Math.random() * 10,
@@ -275,8 +273,6 @@ export class Player<T extends PlayerType> {
           value: Math.random() * 1e6,
           maxValue: 1e6,
           weight: 0.3,
-          normalizedValue: Math.random(),
-          normalizedValueXWeight: Math.random() * 0.3,
         },
       },
       finalValue: Math.random() * 10,
@@ -291,13 +287,10 @@ export class Player<T extends PlayerType> {
     leagueAverage: number,
     weight: number
   ): PerformanceStats {
-    const normalizedValue = value / leagueAverage;
     return {
       value,
       leaugeAvarage: leagueAverage,
       weight,
-      normalizedValue,
-      weightXNormaliazedValue: normalizedValue * weight,
     };
   }
 
