@@ -2,12 +2,16 @@ export type PerformanceStats = {
   value: number;
   leaugeAvarage: number;
   weight: number;
+  normalizedValue: number;
+  weightXNormalizedValue: number;
 };
 
 export type MediaStats = {
   value: number;
   maxValue: number;
   weight: number;
+  normalizedValue: number;
+  weightXNormalizedValue: number;
 };
 
 export type DemandFactor = {
@@ -20,13 +24,14 @@ export type DemandFactor = {
 export type ExternalFactor = {
   value: number;
   normalizationValue: number;
+  normalizedValue: number;
   weight: number;
+  weightXNormalizedValue: number;
 };
 
 export type ImpactOnTeam = {
   playerTotal: number;
   teamTotal: number;
-  impactPercentage: number;
 };
 
 export type InternalDemand = {
@@ -85,6 +90,29 @@ export type GoalkeeperPerformanceType =
   | "yellowCards"
   | "redCards";
 
+export type MediaAttentionType = "socialMedia" | "mediaMentions";
+
+export type SocialMediaMetricsType = "instagramFollowers" | "engagementRate";
+
+export type MediaMentionsType = "googleSearches" | "twitterMentions";
+
+export type ExternalFactorType =
+  | "age"
+  | "gamesInjured"
+  | "teamCompetitiveness"
+  | "nationalTeamStatus"
+  | "captaincy";
+
+export type ImpactOnTeamType = "goals" | "assists";
+
+export type StatsType =
+  | "performanceStats"
+  | "mediaAttentionStats"
+  | "demandFactor"
+  | "extternalFactors"
+  | "impactOnTeam"
+  | "internalDemand";
+
 export type PlayerValues<T extends PlayerType> = {
   id: number;
   type: T;
@@ -93,23 +121,32 @@ export type PlayerValues<T extends PlayerType> = {
     finalValue: number;
   };
   mediaAttentionStats?: {
-    stats: Record<string, MediaStats>;
-    finalValue: number;
+    socialMediaMetrics?: {
+      stats: Record<SocialMediaMetricsType, MediaStats>;
+      finalValue: number;
+    };
+    mediaMentions?: {
+      stats: Record<MediaMentionsType, MediaStats>;
+      finalValue: number;
+    };
   };
   demandFactor?: {
     stats: DemandFactor[];
     finalValue: number;
   };
   extternalFactors?: {
-    stats: Record<string, ExternalFactor>;
+    stats: Record<ExternalFactorType, ExternalFactor>;
     finalValue: number;
   };
   impactOnTeam?: {
-    stats: Record<string, ImpactOnTeam>;
+    stats: Record<ImpactOnTeamType, ImpactOnTeam>;
+    impactPercentage: number;
     finalValue: number;
   };
   internalDemand?: {
     stats: InternalDemand;
+    demandRatio: number;
+    highestDemandRatioOnPlatform: number;
     finalValue: number;
   };
 };

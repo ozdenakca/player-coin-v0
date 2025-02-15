@@ -1,3 +1,12 @@
+import {
+  AttackerPerformenceType,
+  DefenderPerformanceType,
+  GoalkeeperPerformanceType,
+  MidfielderPerformanceType,
+  PlayerType,
+  PerformanceStatsMap,
+} from "./statsApp";
+
 export interface PlayerDBValues {
   id: number;
   weight: number;
@@ -119,3 +128,37 @@ interface Cards {
   red: number;
   yellowred: number;
 }
+
+export type PlayerWeights<T extends PlayerType> = {
+  performanceWeights: Record<keyof PerformanceWeightsMap[T], number>;
+  socialMediaWeights: SocialMediaWeights;
+  mediaMentionsWeights: MediaMentionsWeights;
+  demandFactorWeights: number[];
+  externalFactorWeights: number[];
+  totalPlatformDemand: number;
+  finalValueWeights: number[];
+};
+
+export type PlayerStatsWeights = PerformanceWeightsMap[PlayerType];
+
+export type SocialMediaWeights = {
+  instagramFollowers: number;
+  engagementRate: number;
+};
+
+export type MediaMentionsWeights = {
+  googleSearches: MediaAttentionValue;
+  twitterMentions: MediaAttentionValue;
+};
+
+export type PerformanceWeightsMap = {
+  Attacker: Record<AttackerPerformenceType, number>;
+  Midfielder: Record<MidfielderPerformanceType, number>;
+  Defender: Record<DefenderPerformanceType, number>;
+  Goalkeeper: Record<GoalkeeperPerformanceType, number>;
+};
+
+export type MediaAttentionValue = {
+  maxValue: number;
+  weight: number;
+};
