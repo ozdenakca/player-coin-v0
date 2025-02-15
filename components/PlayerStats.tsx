@@ -334,6 +334,79 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Final Summary */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold mb-4">Overall Value Summary</h3>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left py-2 px-4">Section</th>
+              <th className="text-right py-2 px-4">Final Value</th>
+              <th className="text-right py-2 px-4">Weight</th>
+              <th className="text-right py-2 px-4">Weighted Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              {
+                name: "Performance Statistics",
+                value: playerValues.performanceStats?.finalValue || 0,
+                weight: 0.3,
+              },
+              {
+                name: "Media Attention",
+                value:
+                  ((playerValues.mediaAttentionStats?.socialMediaMetrics
+                    ?.finalValue || 0) +
+                    (playerValues.mediaAttentionStats?.mediaMentions
+                      ?.finalValue || 0)) /
+                  2,
+                weight: 0.2,
+              },
+              {
+                name: "Demand Factors",
+                value: playerValues.demandFactor?.finalValue || 0,
+                weight: 0.2,
+              },
+              {
+                name: "External Factors",
+                value: playerValues.extternalFactors?.finalValue || 0,
+                weight: 0.1,
+              },
+              {
+                name: "Impact on Team",
+                value: playerValues.impactOnTeam?.finalValue || 0,
+                weight: 0.1,
+              },
+              {
+                name: "Internal Demand",
+                value: playerValues.internalDemand?.finalValue || 0,
+                weight: 0.1,
+              },
+            ].map((section) => (
+              <tr key={section.name} className="border-b hover:bg-gray-50">
+                <td className="py-2 px-4 text-gray-600">{section.name}</td>
+                <td className="py-2 px-4 text-right">
+                  {section.value.toFixed(3)}
+                </td>
+                <td className="py-2 px-4 text-right">
+                  {section.weight.toFixed(1)}
+                </td>
+                <td className="py-2 px-4 text-right">
+                  {(section.value * section.weight).toFixed(3)}
+                </td>
+              </tr>
+            ))}
+            <tr className="bg-gray-50 font-semibold">
+              <td className="py-2 px-4">Total Value</td>
+              <td className="py-2 px-4 text-right" colSpan={3}>
+                {[...Array(6)].reduce((sum, _, i) => sum + 0, 0).toFixed(3)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
