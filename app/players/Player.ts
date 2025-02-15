@@ -1,19 +1,27 @@
-import { PlayerDBValues } from "../types/statsDB";
 import {
-  AttackerPerformenceType,
+  PlayerDBValues,
+  PlayerWeights,
+  PlayerStatistics,
+} from "../types/statsDB";
+import {
   PerformanceStats,
   PerformanceStatsMap,
   PlayerType,
   PlayerValues,
+  ExternalFactor,
+  MediaStats,
 } from "../types/statsApp";
+import { WeightsManager } from "../managers/WeightManager";
 
 export class Player<T extends PlayerType> {
   private playerValues: PlayerValues<T>;
   private playerDBValues: PlayerDBValues;
+  private weights: PlayerWeights<T>;
 
   constructor(data: PlayerDBValues) {
-    this.playerValues = this.mapPlayerValues(data);
     this.playerDBValues = data;
+    this.weights = WeightsManager.getInstance().loadWeights(data.position as T);
+    this.playerValues = this.mapPlayerValues(data);
   }
 
   /**
@@ -45,133 +53,43 @@ export class Player<T extends PlayerType> {
   private calculatePerformanceStats(
     data: PlayerDBValues
   ): PlayerValues<T>["performanceStats"] {
-    const stats = data.statistics[0]; // Using first entry
+    const stats = data.statistics[0];
     if (!stats) return undefined;
+
+    // Get position-specific weights
+    const weights = this.weights.performanceWeights;
 
     // Base stats common to all positions
     const baseStats = {
-      gamesStarted: this.createPerformanceStat(stats.games.lineups, 10, 0.2),
+      gamesStarted: this.createPerformanceStat(
+        stats.games.lineups,
+        10,
+        weights.gamesStarted
+      ),
       minutesPerGame: this.createPerformanceStat(
         stats.games.minutes / (stats.games.appearences || 1),
         90,
-        0.2
+        weights.minutesPerGame
       ),
       totalMinutesPlayed: this.createPerformanceStat(
         stats.games.minutes,
         900,
-        0.1
+        weights.totalMinutesPlayed
       ),
-      yellowCards: this.createPerformanceStat(stats.cards.yellow, 5, -0.1),
-      redCards: this.createPerformanceStat(stats.cards.red, 1, -0.3),
+      yellowCards: this.createPerformanceStat(
+        stats.cards.yellow,
+        5,
+        weights.yellowCards
+      ),
+      redCards: this.createPerformanceStat(
+        stats.cards.red,
+        1,
+        weights.redCards
+      ),
     };
 
-    // Position specific stats
-    let positionStats = {};
-    switch (data.position as T) {
-      case "Attacker":
-        positionStats = {
-          goalsPerGame: this.createPerformanceStat(
-            stats.goals.total / (stats.games.appearences || 1),
-            0.5,
-            0.3
-          ),
-          assistsPerGame: this.createPerformanceStat(
-            (stats.assists || 0) / (stats.games.appearences || 1),
-            0.3,
-            0.2
-          ),
-          dualsWon: this.createPerformanceStat(stats.duels.won || 0, 20, 0.2),
-          goalConversion: this.createPerformanceStat(
-            (stats.shots.on || 0) / (stats.shots.total || 1),
-            0.5,
-            0.2
-          ),
-          keyPassesPerGame: this.createPerformanceStat(
-            (stats.passes.key || 0) / (stats.games.appearences || 1),
-            2,
-            0.1
-          ),
-        };
-        break;
-
-      case "Midfielder":
-        positionStats = {
-          goalsPerGame: this.createPerformanceStat(
-            stats.goals.total / (stats.games.appearences || 1),
-            0.2,
-            0.2
-          ),
-          assistsPerGame: this.createPerformanceStat(
-            (stats.assists || 0) / (stats.games.appearences || 1),
-            0.3,
-            0.3
-          ),
-          dualsWon: this.createPerformanceStat(stats.duels.won || 0, 20, 0.2),
-          successfulDribbles: this.createPerformanceStat(
-            stats.dribbles.success || 0,
-            5,
-            0.2
-          ),
-          keyPassesPerGame: this.createPerformanceStat(
-            (stats.passes.key || 0) / (stats.games.appearences || 1),
-            3,
-            0.3
-          ),
-          interceptionsPerGame: this.createPerformanceStat(
-            (stats.tackles.interceptions || 0) / (stats.games.appearences || 1),
-            2,
-            0.2
-          ),
-        };
-        break;
-
-      case "Defender":
-        positionStats = {
-          goalsPerGame: this.createPerformanceStat(
-            stats.goals.total / (stats.games.appearences || 1),
-            0.1,
-            0.1
-          ),
-          assistsPerGame: this.createPerformanceStat(
-            (stats.assists || 0) / (stats.games.appearences || 1),
-            0.1,
-            0.1
-          ),
-          dualsWon: this.createPerformanceStat(stats.duels.won || 0, 20, 0.3),
-          interceptionsPerGame: this.createPerformanceStat(
-            (stats.tackles.interceptions || 0) / (stats.games.appearences || 1),
-            3,
-            0.3
-          ),
-          tacklesPerGame: this.createPerformanceStat(
-            (stats.tackles.total || 0) / (stats.games.appearences || 1),
-            3,
-            0.3
-          ),
-        };
-        break;
-
-      case "Goalkeeper":
-        positionStats = {
-          savesPerGame: this.createPerformanceStat(
-            (stats.goals.saves || 0) / (stats.games.appearences || 1),
-            3,
-            0.3
-          ),
-          cleanSheets: this.createPerformanceStat(0, 1, 0.3), // Need to add this to PlayerStatistics
-          penaltiesSaved: this.createPerformanceStat(
-            stats.penalty.saved || 0,
-            1,
-            0.2
-          ),
-          goalsConcededPerGame: this.createPerformanceStat(
-            (stats.goals.conceded || 0) / (stats.games.appearences || 1),
-            1,
-            -0.3
-          ),
-        };
-        break;
-    }
+    // Position specific stats based on T
+    const positionStats = this.calculatePositionSpecificStats(stats, weights);
 
     const mappedStats = {
       ...baseStats,
@@ -179,7 +97,7 @@ export class Player<T extends PlayerType> {
     } as PerformanceStatsMap[T];
 
     const finalValue = Object.values(mappedStats).reduce(
-      (sum, stat) => sum + (stat.value / stat.leaugeAvarage) * stat.weight,
+      (sum, stat) => sum + (stat.value / stat.normalizedValue) * stat.weight,
       0
     );
 
@@ -216,12 +134,16 @@ export class Player<T extends PlayerType> {
   ): PlayerValues<T>["impactOnTeam"] {
     return {
       stats: {
-        totalGoals: {
+        goals: {
           playerTotal: data.statistics[0]?.goals.total ?? 0,
-          teamTotal: Math.random() * 50, // Replace with actual team data
-          impactPercentage: Math.random() * 100, // Compute real percentage
+          teamTotal: Math.random() * 50,
+        },
+        assists: {
+          playerTotal: data.statistics[0]?.assists ?? 0,
+          teamTotal: Math.random() * 30,
         },
       },
+      impactPercentage: Math.random() * 100,
       finalValue: Math.random() * 10,
     };
   }
@@ -234,11 +156,13 @@ export class Player<T extends PlayerType> {
   ): PlayerValues<T>["internalDemand"] {
     return {
       stats: {
-        value: Math.random() * 10, // Replace with actual calculation
+        value: Math.random() * 10,
         demandRatio: Math.random(),
         highestDemandRatioOnPlatform: 1,
         totalPlatformDemand: 1000,
       },
+      demandRatio: Math.random(),
+      highestDemandRatioOnPlatform: 1,
       finalValue: Math.random() * 10,
     };
   }
@@ -251,11 +175,31 @@ export class Player<T extends PlayerType> {
   ): PlayerValues<T>["extternalFactors"] {
     return {
       stats: {
-        injuryRisk: {
-          value: Math.random(),
-          normalizationValue: 1,
-          weight: -0.5,
-        },
+        age: this.createExternalFactor(
+          data.age,
+          35,
+          this.weights.externalFactorWeights[0]
+        ),
+        gamesInjured: this.createExternalFactor(
+          Math.random() * 10,
+          10,
+          this.weights.externalFactorWeights[1]
+        ),
+        teamCompetitiveness: this.createExternalFactor(
+          Math.random() * 100,
+          100,
+          this.weights.externalFactorWeights[2]
+        ),
+        nationalTeamStatus: this.createExternalFactor(
+          Math.random(),
+          1,
+          this.weights.externalFactorWeights[3]
+        ),
+        captaincy: this.createExternalFactor(
+          data.statistics[0]?.games.captain ? 1 : 0,
+          1,
+          this.weights.externalFactorWeights[4]
+        ),
       },
       finalValue: Math.random() * 10,
     };
@@ -268,14 +212,36 @@ export class Player<T extends PlayerType> {
     data: PlayerDBValues
   ): PlayerValues<T>["mediaAttentionStats"] {
     return {
-      stats: {
-        socialMediaFollowers: {
-          value: Math.random() * 1e6,
-          maxValue: 1e6,
-          weight: 0.3,
+      socialMediaMetrics: {
+        stats: {
+          instagramFollowers: this.createMediaStat(
+            Math.random() * 1e6,
+            1e6,
+            this.weights.socialMediaWeights.instagramFollowers
+          ),
+          engagementRate: this.createMediaStat(
+            Math.random() * 100,
+            100,
+            this.weights.socialMediaWeights.engagementRate
+          ),
         },
+        finalValue: Math.random() * 10,
       },
-      finalValue: Math.random() * 10,
+      mediaMentions: {
+        stats: {
+          googleSearches: this.createMediaStat(
+            Math.random() * 1e5,
+            1e5,
+            this.weights.mediaMentionsWeights.googleSearches.weight
+          ),
+          twitterMentions: this.createMediaStat(
+            Math.random() * 1e4,
+            1e4,
+            this.weights.mediaMentionsWeights.twitterMentions.weight
+          ),
+        },
+        finalValue: Math.random() * 10,
+      },
     };
   }
 
@@ -291,6 +257,43 @@ export class Player<T extends PlayerType> {
       value,
       leaugeAvarage: leagueAverage,
       weight,
+      normalizedValue: value / leagueAverage,
+      weightXNormalizedValue: (value / leagueAverage) * weight,
+    };
+  }
+
+  /**
+   * Helper function to create an ExternalFactor
+   */
+  private createExternalFactor(
+    value: number,
+    normalizationValue: number,
+    weight: number
+  ): ExternalFactor {
+    const normalizedValue = value / normalizationValue;
+    return {
+      value,
+      normalizationValue,
+      weight,
+      normalizedValue,
+      weightXNormalizedValue: normalizedValue * weight,
+    };
+  }
+
+  /**
+   * Helper function to create a MediaStat
+   */
+  private createMediaStat(
+    value: number,
+    maxValue: number,
+    weight: number
+  ): MediaStats {
+    return {
+      value,
+      maxValue,
+      weight,
+      normalizedValue: value / maxValue,
+      weightXNormalizedValue: (value / maxValue) * weight,
     };
   }
 
@@ -313,5 +316,131 @@ export class Player<T extends PlayerType> {
    */
   getPerformanceStats() {
     return this.playerValues.performanceStats?.stats;
+  }
+
+  private calculatePositionSpecificStats(
+    stats: PlayerStatistics,
+    weights: Record<string, number>
+  ): Partial<PerformanceStatsMap[T]> {
+    switch (this.playerDBValues.position as T) {
+      case "Attacker":
+        return {
+          goalsPerGame: this.createPerformanceStat(
+            stats.goals.total / (stats.games.appearences || 1),
+            0.5,
+            weights.goalsPerGame
+          ),
+          assistsPerGame: this.createPerformanceStat(
+            (stats.assists || 0) / (stats.games.appearences || 1),
+            0.3,
+            weights.assistsPerGame
+          ),
+          dualsWon: this.createPerformanceStat(
+            stats.duels.won || 0,
+            stats.duels.total || 1,
+            weights.dualsWon
+          ),
+          goalConversion: this.createPerformanceStat(
+            stats.goals.total / (stats.shots.total || 1),
+            0.2,
+            weights.goalConversion
+          ),
+          keyPassesPerGame: this.createPerformanceStat(
+            (stats.passes.key || 0) / (stats.games.appearences || 1),
+            2,
+            weights.keyPassesPerGame
+          ),
+        } as PerformanceStatsMap[T];
+
+      case "Midfielder":
+        return {
+          goalsPerGame: this.createPerformanceStat(
+            stats.goals.total / (stats.games.appearences || 1),
+            0.3,
+            weights.goalsPerGame
+          ),
+          assistsPerGame: this.createPerformanceStat(
+            (stats.assists || 0) / (stats.games.appearences || 1),
+            0.4,
+            weights.assistsPerGame
+          ),
+          dualsWon: this.createPerformanceStat(
+            stats.duels.won || 0,
+            stats.duels.total || 1,
+            weights.dualsWon
+          ),
+          successfulDribbles: this.createPerformanceStat(
+            stats.dribbles.success || 0,
+            stats.dribbles.attempts || 1,
+            weights.successfulDribbles
+          ),
+          keyPassesPerGame: this.createPerformanceStat(
+            (stats.passes.key || 0) / (stats.games.appearences || 1),
+            3,
+            weights.keyPassesPerGame
+          ),
+          interceptionsPerGame: this.createPerformanceStat(
+            (stats.tackles.interceptions || 0) / (stats.games.appearences || 1),
+            2,
+            weights.interceptionsPerGame
+          ),
+        } as PerformanceStatsMap[T];
+
+      case "Defender":
+        return {
+          goalsPerGame: this.createPerformanceStat(
+            stats.goals.total / (stats.games.appearences || 1),
+            0.1,
+            weights.goalsPerGame
+          ),
+          assistsPerGame: this.createPerformanceStat(
+            (stats.assists || 0) / (stats.games.appearences || 1),
+            0.2,
+            weights.assistsPerGame
+          ),
+          dualsWon: this.createPerformanceStat(
+            stats.duels.won || 0,
+            stats.duels.total || 1,
+            weights.dualsWon
+          ),
+          interceptionsPerGame: this.createPerformanceStat(
+            (stats.tackles.interceptions || 0) / (stats.games.appearences || 1),
+            3,
+            weights.interceptionsPerGame
+          ),
+          tacklesPerGame: this.createPerformanceStat(
+            (stats.tackles.total || 0) / (stats.games.appearences || 1),
+            3,
+            weights.tacklesPerGame
+          ),
+        } as PerformanceStatsMap[T];
+
+      case "Goalkeeper":
+        return {
+          savesPerGame: this.createPerformanceStat(
+            (stats.goals.saves || 0) / (stats.games.appearences || 1),
+            3,
+            weights.savesPerGame
+          ),
+          cleanSheets: this.createPerformanceStat(
+            stats.games.lineups - (stats.goals.conceded || 0),
+            stats.games.lineups,
+            weights.cleanSheets
+          ),
+          penaltiesSaved: this.createPerformanceStat(
+            stats.penalty.saved || 0,
+            stats.penalty.scored || 1,
+            weights.penaltiesSaved
+          ),
+          goalsConcededPerGame: this.createPerformanceStat(
+            (stats.goals.conceded || 0) / (stats.games.appearences || 1),
+            1,
+            weights.goalsConcededPerGame
+          ),
+        } as PerformanceStatsMap[T];
+
+      default:
+        return {};
+    }
   }
 }

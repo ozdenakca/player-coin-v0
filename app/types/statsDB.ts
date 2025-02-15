@@ -27,7 +27,7 @@ export interface PlayerDBValues {
   };
 }
 
-interface PlayerStatistics {
+export interface PlayerStatistics {
   team: Team;
   league: League;
   games: Games;
@@ -130,7 +130,7 @@ interface Cards {
 }
 
 export type PlayerWeights<T extends PlayerType> = {
-  performanceWeights: Record<keyof PerformanceWeightsMap[T], number>;
+  performanceWeights: PerformanceWeightsMap[T];
   socialMediaWeights: SocialMediaWeights;
   mediaMentionsWeights: MediaMentionsWeights;
   demandFactorWeights: number[];
@@ -138,8 +138,6 @@ export type PlayerWeights<T extends PlayerType> = {
   totalPlatformDemand: number;
   finalValueWeights: number[];
 };
-
-export type PlayerStatsWeights = PerformanceWeightsMap[PlayerType];
 
 export type SocialMediaWeights = {
   instagramFollowers: number;
