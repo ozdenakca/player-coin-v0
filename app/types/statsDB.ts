@@ -5,6 +5,7 @@ import {
   MidfielderPerformanceType,
   PlayerType,
   PerformanceStatsMap,
+  ExternalFactorType,
 } from "./statsApp";
 
 export interface PlayerDBValues {
@@ -134,7 +135,7 @@ export type PlayerWeights<T extends PlayerType> = {
   socialMediaWeights: SocialMediaWeights;
   mediaMentionsWeights: MediaMentionsWeights;
   demandFactorWeights: number[];
-  externalFactorWeights: number[];
+  externalFactorWeights: Record<ExternalFactorType, number>;
   totalPlatformDemand: number;
   finalValueWeights: number[];
 };

@@ -178,27 +178,27 @@ export class Player<T extends PlayerType> {
         age: this.createExternalFactor(
           data.age,
           35,
-          this.weights.externalFactorWeights[0]
+          this.weights.externalFactorWeights.age
         ),
         gamesInjured: this.createExternalFactor(
           Math.random() * 10,
           10,
-          this.weights.externalFactorWeights[1]
+          this.weights.externalFactorWeights.gamesInjured
         ),
         teamCompetitiveness: this.createExternalFactor(
           Math.random() * 100,
           100,
-          this.weights.externalFactorWeights[2]
+          this.weights.externalFactorWeights.teamCompetitiveness
         ),
         nationalTeamStatus: this.createExternalFactor(
           Math.random(),
           1,
-          this.weights.externalFactorWeights[3]
+          this.weights.externalFactorWeights.nationalTeamStatus
         ),
         captaincy: this.createExternalFactor(
           data.statistics[0]?.games.captain ? 1 : 0,
           1,
-          this.weights.externalFactorWeights[4]
+          this.weights.externalFactorWeights.captaincy
         ),
       },
       finalValue: Math.random() * 10,

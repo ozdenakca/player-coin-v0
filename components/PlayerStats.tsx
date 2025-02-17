@@ -1,7 +1,7 @@
 "use client";
 
 import { Player } from "@/app/players/Player";
-import { PlayerType } from "@/app/types/statsApp";
+import { PlayerType, ExternalFactorType } from "@/app/types/statsApp";
 import { WeightsManager } from "@/app/managers/WeightManager";
 import { useState } from "react";
 import {
@@ -57,6 +57,12 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
           newWeights.performanceWeights = {
             ...prev.performanceWeights,
             [key]: value,
+          };
+          break;
+        case "externalFactorWeights":
+          newWeights.externalFactorWeights = {
+            ...prev.externalFactorWeights,
+            [key as ExternalFactorType]: value,
           };
           break;
         default:
@@ -427,7 +433,11 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                         <input
                           type="number"
                           step="0.1"
-                          value={weights.externalFactorWeights[parseInt(key)]}
+                          value={
+                            weights.externalFactorWeights[
+                              key as ExternalFactorType
+                            ]
+                          }
                           onChange={(e) =>
                             handleWeightChange(
                               "externalFactorWeights",

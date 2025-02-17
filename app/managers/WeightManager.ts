@@ -60,7 +60,13 @@ export class WeightsManager {
           twitterMentions: { maxValue: 0, weight: 0 },
         },
         demandFactorWeights: [0, 0, 0],
-        externalFactorWeights: [0, 0, 0, 0, 0],
+        externalFactorWeights: {
+          age: 0,
+          gamesInjured: 0,
+          teamCompetitiveness: 0,
+          nationalTeamStatus: 0,
+          captaincy: 0,
+        },
         totalPlatformDemand: 0,
         finalValueWeights: [0, 0, 0, 0, 0, 0],
       });
