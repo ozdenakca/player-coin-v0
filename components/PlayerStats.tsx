@@ -594,7 +594,23 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                     Total Platform Demand
                   </td>
                   <td className="py-2 px-4 text-right">
-                    {playerValues.internalDemand.stats.totalPlatformDemand.toLocaleString()}
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={weights.totalPlatformDemand}
+                        onChange={(e) =>
+                          handleWeightChange(
+                            "totalPlatformDemand",
+                            "",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        className="w-24 border rounded px-2 py-1 text-right"
+                      />
+                    ) : (
+                      weights.totalPlatformDemand.toLocaleString()
+                    )}
                   </td>
                 </tr>
                 <tr className="bg-gray-50 font-semibold">
@@ -623,52 +639,59 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
           </thead>
           <tbody>
             {[
-              {
-                name: "Performance Statistics",
-                value: playerValues.performanceStats?.finalValue || 0,
-                weight: 0.3,
-              },
-              {
-                name: "Media Attention",
-                value:
-                  ((playerValues.mediaAttentionStats?.socialMediaMetrics
-                    ?.finalValue || 0) +
-                    (playerValues.mediaAttentionStats?.mediaMentions
-                      ?.finalValue || 0)) /
-                  2,
-                weight: 0.2,
-              },
-              {
-                name: "Demand Factors",
-                value: playerValues.demandFactor?.finalValue || 0,
-                weight: 0.2,
-              },
-              {
-                name: "External Factors",
-                value: playerValues.extternalFactors?.finalValue || 0,
-                weight: 0.1,
-              },
-              {
-                name: "Impact on Team",
-                value: playerValues.impactOnTeam?.finalValue || 0,
-                weight: 0.1,
-              },
-              {
-                name: "Internal Demand",
-                value: playerValues.internalDemand?.finalValue || 0,
-                weight: 0.1,
-              },
-            ].map((section) => (
-              <tr key={section.name} className="border-b hover:bg-gray-50">
-                <td className="py-2 px-4 text-gray-600">{section.name}</td>
+              [
+                "Performance",
+                playerValues.performanceStats?.finalValue ?? 0,
+                0,
+              ],
+              [
+                "Media Attention",
+                playerValues.mediaAttentionStats?.mediaMentions?.finalValue ??
+                  0,
+                1,
+              ],
+              [
+                "External Factors",
+                playerValues.extternalFactors?.finalValue ?? 0,
+                2,
+              ],
+              ["Demand Factor", playerValues.demandFactor?.finalValue ?? 0, 3],
+              ["Team Impact", playerValues.impactOnTeam?.finalValue ?? 0, 4],
+              [
+                "Internal Demand",
+                playerValues.internalDemand?.finalValue ?? 0,
+                5,
+              ],
+            ].map(([name, value, index]) => (
+              <tr key={name} className="border-b hover:bg-gray-50">
+                <td className="py-2 px-4 text-gray-600">{name}</td>
                 <td className="py-2 px-4 text-right">
-                  {section.value.toFixed(3)}
+                  {(value as number).toFixed(2)}
                 </td>
                 <td className="py-2 px-4 text-right">
-                  {section.weight.toFixed(1)}
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={weights.finalValueWeights[index as number]}
+                      onChange={(e) =>
+                        handleWeightChange(
+                          "finalValueWeights",
+                          index.toString(),
+                          parseFloat(e.target.value)
+                        )
+                      }
+                      className="w-24 border rounded px-2 py-1 text-right"
+                    />
+                  ) : (
+                    weights.finalValueWeights[index as number]
+                  )}
                 </td>
                 <td className="py-2 px-4 text-right">
-                  {(section.value * section.weight).toFixed(3)}
+                  {(
+                    (value as number) *
+                    weights.finalValueWeights[index as number]
+                  ).toFixed(2)}
                 </td>
               </tr>
             ))}
