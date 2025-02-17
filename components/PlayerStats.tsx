@@ -163,9 +163,10 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
               <tr className="border-b">
                 <th className="text-left py-2 px-4">Platform</th>
                 <th className="text-right py-2 px-4">Value</th>
+                <th className="text-right py-2 px-4">Max Value</th>
                 <th className="text-right py-2 px-4">Weight</th>
                 <th className="text-right py-2 px-4">Normalized Value</th>
-                <th className="text-right py-2 px-4">Score</th>
+                <th className="text-right py-2 px-4">Normalized × Weight</th>
               </tr>
             </thead>
             <tbody>
@@ -184,6 +185,9 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                         ? stat.value.toLocaleString()
                         : `${stat.value.toFixed(2)}%`}
                     </td>
+                    <td className="py-2 px-4 text-right">
+                      {stat.maxValue.toLocaleString()}
+                    </td>
                     <td className="py-2 px-4 text-right">{stat.weight}</td>
                     <td className="py-2 px-4 text-right">
                       {stat.normalizedValue.toFixed(2)}
@@ -195,7 +199,7 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                 ))}
               <tr className="bg-gray-50 font-semibold">
                 <td className="py-2 px-4">Final Score</td>
-                <td className="py-2 px-4 text-right" colSpan={4}>
+                <td className="py-2 px-4 text-right" colSpan={5}>
                   {playerValues.mediaAttentionStats?.socialMediaMetrics?.finalValue.toFixed(
                     2
                   )}
@@ -216,10 +220,11 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
             <thead>
               <tr className="border-b">
                 <th className="text-left py-2 px-4">Source</th>
-                <th className="text-right py-2 px-4">Count</th>
+                <th className="text-right py-2 px-4">Value</th>
                 <th className="text-right py-2 px-4">Max Value</th>
                 <th className="text-right py-2 px-4">Weight</th>
-                <th className="text-right py-2 px-4">Score</th>
+                <th className="text-right py-2 px-4">Normalized Value</th>
+                <th className="text-right py-2 px-4">Normalized × Weight</th>
               </tr>
             </thead>
             <tbody>
@@ -241,13 +246,16 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                     </td>
                     <td className="py-2 px-4 text-right">{stat.weight}</td>
                     <td className="py-2 px-4 text-right">
+                      {stat.normalizedValue.toFixed(2)}
+                    </td>
+                    <td className="py-2 px-4 text-right">
                       {stat.weightXNormalizedValue.toFixed(2)}
                     </td>
                   </tr>
                 ))}
               <tr className="bg-gray-50 font-semibold">
                 <td className="py-2 px-4">Final Score</td>
-                <td className="py-2 px-4 text-right" colSpan={4}>
+                <td className="py-2 px-4 text-right" colSpan={5}>
                   {playerValues.mediaAttentionStats?.mediaMentions?.finalValue.toFixed(
                     2
                   )}
