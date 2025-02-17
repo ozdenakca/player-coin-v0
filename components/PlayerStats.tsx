@@ -2,6 +2,9 @@
 
 import { Player } from "@/app/players/Player";
 import { PlayerType } from "@/app/types/statsApp";
+import { WeightsManager } from "@/app/managers/WeightManager";
+import { useState } from "react";
+import { PlayerWeights } from "@/app/types/statsDB";
 
 interface PlayerStatsProps {
   player: InstanceType<typeof Player<PlayerType>>;
@@ -9,12 +12,99 @@ interface PlayerStatsProps {
 
 export default function PlayerStats({ player }: PlayerStatsProps) {
   const playerValues = player.getPlayerValues();
+  const [weights, setWeights] = useState<PlayerWeights<PlayerType>>(
+    WeightsManager.getInstance().loadWeights(playerValues.type)
+  );
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleWeightChange = (
+    section: keyof PlayerWeights<PlayerType>,
+    key: string,
+    value: number
+  ) => {
+    setWeights((prev) => ({
+      ...prev,
+      [section]:
+        typeof prev[section] === "object"
+          ? { ...prev[section], [key]: value }
+          : value,
+    }));
+  };
+
+  const handleSaveWeights = async () => {
+    try {
+      await WeightsManager.getInstance().saveWeights(
+        playerValues.type,
+        weights
+      );
+      setIsEditing(false);
+      // Reload player with new weights
+      window.location.reload();
+    } catch (error) {
+      console.error("Error saving weights:", error);
+    }
+  };
+
+  // Add this at the top of each stats section
+  const renderWeightEditor = (
+    section: keyof PlayerWeights<PlayerType>,
+    weights: Record<string, any>
+  ) => {
+    if (!isEditing) return null;
+
+    return (
+      <div className="mb-4 p-4 bg-gray-50 rounded">
+        <h4 className="font-medium mb-2">Edit Weights</h4>
+        {Object.entries(weights).map(([key, value]) => (
+          <div key={key} className="flex items-center mb-2">
+            <label className="mr-2">{key}:</label>
+            <input
+              type="number"
+              step="0.1"
+              value={typeof value === "object" ? value.weight : value}
+              onChange={(e) =>
+                handleWeightChange(section, key, parseFloat(e.target.value))
+              }
+              className="border rounded px-2 py-1"
+            />
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        {isEditing ? (
+          <>
+            <button
+              onClick={handleSaveWeights}
+              className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+            >
+              Save Weights
+            </button>
+            <button
+              onClick={() => setIsEditing(false)}
+              className="bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Edit Weights
+          </button>
+        )}
+      </div>
+
       {/* Performance Stats */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Performance</h3>
+        {renderWeightEditor("performanceWeights", weights.performanceWeights)}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -67,6 +157,7 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
         {/* Social Media Section */}
         <div className="mb-6">
           <h4 className="text-md font-medium mb-3">Social Media</h4>
+          {renderWeightEditor("socialMediaWeights", weights.socialMediaWeights)}
           <table className="w-full">
             <thead>
               <tr className="border-b">
@@ -117,6 +208,10 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
         {/* Media Mentions Section */}
         <div>
           <h4 className="text-md font-medium mb-3">Media Mentions</h4>
+          {renderWeightEditor(
+            "mediaMentionsWeights",
+            weights.mediaMentionsWeights
+          )}
           <table className="w-full">
             <thead>
               <tr className="border-b">
@@ -166,6 +261,10 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
       {/* External Factors */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">External Factors</h3>
+        {renderWeightEditor(
+          "externalFactorWeights",
+          weights.externalFactorWeights
+        )}
         <table className="w-full">
           <thead>
             <tr className="border-b">
@@ -212,6 +311,7 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
       {/* Demand Factor */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Demand Factor</h3>
+        {renderWeightEditor("demandFactorWeights", weights.demandFactorWeights)}
         <table className="w-full">
           <thead>
             <tr className="border-b">

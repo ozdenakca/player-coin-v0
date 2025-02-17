@@ -2,12 +2,16 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Player } from "../players/Player";
 import { PlayerDBValues } from "../types/statsDB";
+import { WeightsManager } from "./WeightManager";
 
 export class ConnectionManager {
   private static instance: ConnectionManager;
 
   async getPlayer(playerId: string) {
     try {
+      // Initialize weights first
+      await WeightsManager.getInstance().initializeWeights();
+
       const playerDoc = await getDoc(doc(db, "players", playerId));
       if (!playerDoc.exists()) return null;
 
