@@ -52,8 +52,8 @@ export class WeightsManager {
       this.weights.set(position, {
         performanceWeights: this.getZeroPerformanceWeights(position),
         socialMediaWeights: {
-          instagramFollowers: 0,
-          engagementRate: 0,
+          instagramFollowers: { maxValue: 0, weight: 0 },
+          engagementRate: { maxValue: 0, weight: 0 },
         },
         mediaMentionsWeights: {
           googleSearches: { maxValue: 0, weight: 0 },

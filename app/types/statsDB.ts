@@ -140,8 +140,8 @@ export type PlayerWeights<T extends PlayerType> = {
 };
 
 export type SocialMediaWeights = {
-  instagramFollowers: number;
-  engagementRate: number;
+  instagramFollowers: MediaAttentionValue;
+  engagementRate: MediaAttentionValue;
 };
 
 export type MediaMentionsWeights = {

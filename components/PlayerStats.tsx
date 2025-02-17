@@ -4,7 +4,11 @@ import { Player } from "@/app/players/Player";
 import { PlayerType } from "@/app/types/statsApp";
 import { WeightsManager } from "@/app/managers/WeightManager";
 import { useState } from "react";
-import { PlayerWeights } from "@/app/types/statsDB";
+import {
+  PlayerWeights,
+  MediaMentionsWeights,
+  SocialMediaWeights,
+} from "@/app/types/statsDB";
 
 interface PlayerStatsProps {
   player: InstanceType<typeof Player<PlayerType>>;
@@ -12,23 +16,61 @@ interface PlayerStatsProps {
 
 export default function PlayerStats({ player }: PlayerStatsProps) {
   const playerValues = player.getPlayerValues();
+  console.log("Player Values:", playerValues);
+
   const [weights, setWeights] = useState<PlayerWeights<PlayerType>>(
     WeightsManager.getInstance().loadWeights(playerValues.type)
   );
+  console.log("Initial Weights:", weights);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleWeightChange = (
     section: keyof PlayerWeights<PlayerType>,
     key: string,
-    value: number
+    value: number,
+    field: "maxValue" | "weight" = "weight"
   ) => {
-    setWeights((prev) => ({
-      ...prev,
-      [section]:
-        typeof prev[section] === "object"
-          ? { ...prev[section], [key]: value }
-          : value,
-    }));
+    setWeights((prev) => {
+      if (!prev) return prev;
+      const newWeights = { ...prev };
+
+      switch (section) {
+        case "mediaMentionsWeights":
+          newWeights.mediaMentionsWeights = {
+            ...prev.mediaMentionsWeights,
+            [key as keyof MediaMentionsWeights]: {
+              ...prev.mediaMentionsWeights[key as keyof MediaMentionsWeights],
+              [field]: value,
+            },
+          };
+          break;
+        case "socialMediaWeights":
+          newWeights.socialMediaWeights = {
+            ...prev.socialMediaWeights,
+            [key as keyof SocialMediaWeights]: {
+              ...prev.socialMediaWeights[key as keyof SocialMediaWeights],
+              [field]: value,
+            },
+          };
+          break;
+        case "performanceWeights":
+          newWeights.performanceWeights = {
+            ...prev.performanceWeights,
+            [key]: value,
+          };
+          break;
+        default:
+          if (Array.isArray(prev[section])) {
+            const newArray = [...(prev[section] as number[])];
+            newArray[parseInt(key)] = value;
+            (newWeights[section] as number[]) = newArray;
+          } else {
+            (newWeights[section] as number) = value;
+          }
+      }
+
+      return newWeights;
+    });
   };
 
   const handleSaveWeights = async () => {
@@ -43,34 +85,6 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
     } catch (error) {
       console.error("Error saving weights:", error);
     }
-  };
-
-  // Add this at the top of each stats section
-  const renderWeightEditor = (
-    section: keyof PlayerWeights<PlayerType>,
-    weights: Record<string, any>
-  ) => {
-    if (!isEditing) return null;
-
-    return (
-      <div className="mb-4 p-4 bg-gray-50 rounded">
-        <h4 className="font-medium mb-2">Edit Weights</h4>
-        {Object.entries(weights).map(([key, value]) => (
-          <div key={key} className="flex items-center mb-2">
-            <label className="mr-2">{key}:</label>
-            <input
-              type="number"
-              step="0.1"
-              value={typeof value === "object" ? value.weight : value}
-              onChange={(e) =>
-                handleWeightChange(section, key, parseFloat(e.target.value))
-              }
-              className="border rounded px-2 py-1"
-            />
-          </div>
-        ))}
-      </div>
-    );
   };
 
   return (
@@ -104,7 +118,6 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
       {/* Performance Stats */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Performance</h3>
-        {renderWeightEditor("performanceWeights", weights.performanceWeights)}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -129,7 +142,29 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                       <td className="py-2 px-4 text-right">
                         {stat.leaugeAvarage.toFixed(2)}
                       </td>
-                      <td className="py-2 px-4 text-right">{stat.weight}</td>
+                      <td className="py-2 px-4 text-right">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={
+                              weights.performanceWeights[
+                                key as keyof typeof weights.performanceWeights
+                              ]
+                            }
+                            onChange={(e) =>
+                              handleWeightChange(
+                                "performanceWeights",
+                                key,
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            className="w-24 border rounded px-2 py-1 text-right"
+                          />
+                        ) : (
+                          stat.weight
+                        )}
+                      </td>
                       <td className="py-2 px-4 text-right">
                         {(stat.value / stat.leaugeAvarage).toFixed(2)}
                       </td>
@@ -157,7 +192,6 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
         {/* Social Media Section */}
         <div className="mb-6">
           <h4 className="text-md font-medium mb-3">Social Media</h4>
-          {renderWeightEditor("socialMediaWeights", weights.socialMediaWeights)}
           <table className="w-full">
             <thead>
               <tr className="border-b">
@@ -186,9 +220,57 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                         : `${stat.value.toFixed(2)}%`}
                     </td>
                     <td className="py-2 px-4 text-right">
-                      {stat.maxValue.toLocaleString()}
+                      {isEditing ? (
+                        <div className="flex space-x-2 justify-end">
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={
+                              weights.socialMediaWeights[
+                                key as keyof SocialMediaWeights
+                              ].maxValue
+                            }
+                            onChange={(e) =>
+                              handleWeightChange(
+                                "socialMediaWeights",
+                                key,
+                                parseFloat(e.target.value),
+                                "maxValue"
+                              )
+                            }
+                            className="w-24 border rounded px-2 py-1 text-right"
+                          />
+                        </div>
+                      ) : (
+                        weights.socialMediaWeights[
+                          key as keyof SocialMediaWeights
+                        ].maxValue.toLocaleString()
+                      )}
                     </td>
-                    <td className="py-2 px-4 text-right">{stat.weight}</td>
+                    <td className="py-2 px-4 text-right">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={
+                            weights.socialMediaWeights[
+                              key as keyof SocialMediaWeights
+                            ].weight
+                          }
+                          onChange={(e) =>
+                            handleWeightChange(
+                              "socialMediaWeights",
+                              key,
+                              parseFloat(e.target.value),
+                              "weight"
+                            )
+                          }
+                          className="w-24 border rounded px-2 py-1 text-right"
+                        />
+                      ) : (
+                        stat.weight
+                      )}
+                    </td>
                     <td className="py-2 px-4 text-right">
                       {stat.normalizedValue.toFixed(2)}
                     </td>
@@ -212,10 +294,6 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
         {/* Media Mentions Section */}
         <div>
           <h4 className="text-md font-medium mb-3">Media Mentions</h4>
-          {renderWeightEditor(
-            "mediaMentionsWeights",
-            weights.mediaMentionsWeights
-          )}
           <table className="w-full">
             <thead>
               <tr className="border-b">
@@ -231,28 +309,77 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
               {playerValues.mediaAttentionStats?.mediaMentions &&
                 Object.entries(
                   playerValues.mediaAttentionStats.mediaMentions.stats
-                ).map(([key, stat]) => (
-                  <tr key={key} className="border-b hover:bg-gray-50">
-                    <td className="py-2 px-4 text-gray-600">
-                      {key === "googleSearches"
-                        ? "Google Searches"
-                        : "Twitter Mentions"}
-                    </td>
-                    <td className="py-2 px-4 text-right">
-                      {stat.value.toLocaleString()}
-                    </td>
-                    <td className="py-2 px-4 text-right">
-                      {stat.maxValue.toLocaleString()}
-                    </td>
-                    <td className="py-2 px-4 text-right">{stat.weight}</td>
-                    <td className="py-2 px-4 text-right">
-                      {stat.normalizedValue.toFixed(2)}
-                    </td>
-                    <td className="py-2 px-4 text-right">
-                      {stat.weightXNormalizedValue.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
+                ).map(([key, stat]) => {
+                  console.log("Media Mention Entry:", key, stat);
+                  return (
+                    <tr key={key} className="border-b hover:bg-gray-50">
+                      <td className="py-2 px-4 text-gray-600">
+                        {key === "googleSearches"
+                          ? "Google Searches"
+                          : "Twitter Mentions"}
+                      </td>
+                      <td className="py-2 px-4 text-right">
+                        {stat.value.toLocaleString()}
+                      </td>
+                      <td className="py-2 px-4 text-right">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={
+                              weights.mediaMentionsWeights[
+                                key as keyof MediaMentionsWeights
+                              ].maxValue
+                            }
+                            onChange={(e) =>
+                              handleWeightChange(
+                                "mediaMentionsWeights",
+                                key,
+                                parseFloat(e.target.value),
+                                "maxValue"
+                              )
+                            }
+                            className="w-24 border rounded px-2 py-1 text-right"
+                          />
+                        ) : (
+                          weights.mediaMentionsWeights[
+                            key as keyof MediaMentionsWeights
+                          ].maxValue.toLocaleString()
+                        )}
+                      </td>
+                      <td className="py-2 px-4 text-right">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={
+                              weights.mediaMentionsWeights[
+                                key as keyof MediaMentionsWeights
+                              ].weight
+                            }
+                            onChange={(e) =>
+                              handleWeightChange(
+                                "mediaMentionsWeights",
+                                key,
+                                parseFloat(e.target.value),
+                                "weight"
+                              )
+                            }
+                            className="w-24 border rounded px-2 py-1 text-right"
+                          />
+                        ) : (
+                          stat.weight
+                        )}
+                      </td>
+                      <td className="py-2 px-4 text-right">
+                        {stat.normalizedValue.toFixed(2)}
+                      </td>
+                      <td className="py-2 px-4 text-right">
+                        {stat.weightXNormalizedValue.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
               <tr className="bg-gray-50 font-semibold">
                 <td className="py-2 px-4">Final Score</td>
                 <td className="py-2 px-4 text-right" colSpan={5}>
@@ -269,10 +396,6 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
       {/* External Factors */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">External Factors</h3>
-        {renderWeightEditor(
-          "externalFactorWeights",
-          weights.externalFactorWeights
-        )}
         <table className="w-full">
           <thead>
             <tr className="border-b">
@@ -299,7 +422,25 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                     <td className="py-2 px-4 text-right">
                       {factor.normalizedValue.toFixed(2)}
                     </td>
-                    <td className="py-2 px-4 text-right">{factor.weight}</td>
+                    <td className="py-2 px-4 text-right">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={weights.externalFactorWeights[parseInt(key)]}
+                          onChange={(e) =>
+                            handleWeightChange(
+                              "externalFactorWeights",
+                              key,
+                              parseFloat(e.target.value)
+                            )
+                          }
+                          className="w-24 border rounded px-2 py-1 text-right"
+                        />
+                      ) : (
+                        factor.weight
+                      )}
+                    </td>
                     <td className="py-2 px-4 text-right">
                       {factor.weightXNormalizedValue.toFixed(2)}
                     </td>
@@ -319,7 +460,6 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
       {/* Demand Factor */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Demand Factor</h3>
-        {renderWeightEditor("demandFactorWeights", weights.demandFactorWeights)}
         <table className="w-full">
           <thead>
             <tr className="border-b">
@@ -338,7 +478,23 @@ export default function PlayerStats({ player }: PlayerStatsProps) {
                 </td>
                 <td className="py-2 px-4 text-right">{stat.maxRanking}</td>
                 <td className="py-2 px-4 text-right">
-                  {stat.competetiveSS.toFixed(2)}
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={weights.demandFactorWeights[index]}
+                      onChange={(e) =>
+                        handleWeightChange(
+                          "demandFactorWeights",
+                          index.toString(),
+                          parseFloat(e.target.value)
+                        )
+                      }
+                      className="w-24 border rounded px-2 py-1 text-right"
+                    />
+                  ) : (
+                    stat.competetiveSS.toFixed(2)
+                  )}
                 </td>
               </tr>
             ))}

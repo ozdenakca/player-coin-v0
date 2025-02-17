@@ -211,18 +211,18 @@ export class Player<T extends PlayerType> {
   private calculateMediaAttentionStats(
     data: PlayerDBValues
   ): PlayerValues<T>["mediaAttentionStats"] {
-    return {
+    const stats = {
       socialMediaMetrics: {
         stats: {
           instagramFollowers: this.createMediaStat(
             Math.random() * 1e6,
             1e6,
-            this.weights.socialMediaWeights.instagramFollowers
+            this.weights.socialMediaWeights.instagramFollowers.weight
           ),
           engagementRate: this.createMediaStat(
             Math.random() * 100,
             100,
-            this.weights.socialMediaWeights.engagementRate
+            this.weights.socialMediaWeights.engagementRate.weight
           ),
         },
         finalValue: Math.random() * 10,
@@ -243,6 +243,8 @@ export class Player<T extends PlayerType> {
         finalValue: Math.random() * 10,
       },
     };
+    console.log("Calculated Media Stats:", stats);
+    return stats;
   }
 
   /**
